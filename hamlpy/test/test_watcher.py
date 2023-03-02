@@ -92,7 +92,6 @@ class WatcherTest(unittest.TestCase):
         ), patch.object(time, "sleep", side_effect=KeyboardInterrupt), self.assertRaises(
             ScriptExit
         ) as raises:  # noqa
-
             watch_folder()
 
             assert raises.exception.exit_code == expected_exit_code

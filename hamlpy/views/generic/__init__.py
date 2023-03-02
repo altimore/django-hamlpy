@@ -27,7 +27,6 @@ class HamlExtensionTemplateView(object):
         haml_names = []
 
         for name in names:
-
             for ext in NON_HAML_EXTENSIONS:
                 if name.endswith("." + ext):
                     base_name = name[: -len(ext)]
