@@ -1,3 +1,14 @@
+v1.5.0 (2023-03-03)
+-------------------------
+ * Update .gitignore
+ * Merge pull request #95 from nyaruka/fix-app-config
+ * Test in python 3.11 as well
+ * Run black
+ * Update pygments to 2.14.0
+ * Add apps submodule
+ * Update deps for code styles
+ * Update README.md
+
 v1.4.4
 ----------
  * Loosen regex dependency
