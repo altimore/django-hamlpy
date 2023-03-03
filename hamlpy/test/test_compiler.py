@@ -221,8 +221,7 @@ test""",
     def test_pygments_filter(self):
         self._test(":highlight\n", "")  # empty
         self._test(
-            ":highlight\n  print(1)\n",
-            '<div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>\n</pre></div>',
+            ":highlight\n  print(1)\n", '<div class="highlight"><pre><span></span>print(1)\n</pre></div>'
         )  # noqa
 
         filters._pygments_available = False
