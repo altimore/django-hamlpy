@@ -16,3 +16,4 @@ dist/
 django_hamlpy.egg-info/
 fabric
 fabfile.*
+deploy
