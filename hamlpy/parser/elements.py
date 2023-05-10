@@ -123,6 +123,7 @@ class Element(object):
     )
 
     DEFAULT_TAG = "div"
+    ESCAPED = {'"': "&quot;", "'": "&#39;"}
 
     def __init__(
         self,
@@ -190,10 +191,10 @@ class Element(object):
 
         return " ".join(rendered)
 
-    @staticmethod
-    def _escape_attribute_quotes(v, attr_wrapper):
+    @classmethod
+    def _escape_attribute_quotes(cls, v, attr_wrapper):
         """
-        Escapes quotes with a backslash, except those inside a Django tag
+        Escapes quotes, except those inside a Django tag
         """
         escaped = []
         inside_tag = False
@@ -204,8 +205,8 @@ class Element(object):
                 inside_tag = False
 
             if v[i] == attr_wrapper and not inside_tag:
-                escaped.append("\\")
-
-            escaped.append(v[i])
+                escaped.append(cls.ESCAPED[attr_wrapper])
+            else:
+                escaped.append(v[i])
 
         return "".join(escaped)

@@ -43,8 +43,13 @@ class ElementTest(unittest.TestCase):
         s1 = Element._escape_attribute_quotes("""{% url 'blah' %}""", attr_wrapper="'")
         assert s1 == """{% url 'blah' %}"""
 
-        s2 = Element._escape_attribute_quotes("""blah's blah''s {% url 'blah' %} blah's blah''s""", attr_wrapper="'")
-        assert s2 == r"blah\'s blah\'\'s {% url 'blah' %} blah\'s blah\'\'s"
+        s2 = Element._escape_attribute_quotes(
+            """'foo'="bar" {% url 'blah' "blah" %} blah's blah''s""", attr_wrapper="'"
+        )
+        assert s2 == """&#39;foo&#39;="bar" {% url 'blah' "blah" %} blah&#39;s blah&#39;&#39;s"""
+
+        s3 = Element._escape_attribute_quotes("""'foo'="bar" {% url 'blah' "blah" %}""", attr_wrapper='"')
+        assert s3 == """'foo'=&quot;bar&quot; {% url 'blah' "blah" %}"""
 
     def test_parses_tag(self):
         element = self._read_element("%span.class")
