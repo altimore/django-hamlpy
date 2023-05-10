@@ -4,6 +4,7 @@
 .project
 .pydevproject
 .DS_Store
+.vscode
 .idea/
 .tox/
 .watcher_test/

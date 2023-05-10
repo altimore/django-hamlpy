@@ -21,7 +21,7 @@ packages = [
 repository = "http://github.com/nyaruka/django-hamlpy"
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 django = ">=3.2,<5.0"
 regex = ">=2020.1.1"
 
@@ -30,7 +30,6 @@ Markdown = "^3.4.1"
 pytest = "^6.1.2"
 pytest-cov = "^4.0.0"
 Pygments = "^2.14.0"
-codecov = "^2.1.12"
 Jinja2 = "^3.1.2"
 black = "^23.1.0"
 isort = "^5.11.0"

@@ -5,8 +5,8 @@ jobs:
     name: Test
     strategy:
       matrix:
-        python-version: ['3.8.x', '3.9.x', '3.10.x', '3.11.x']
-        django-version: ['3.2.18', '4.0.10', '4.1.7']
+        python-version: ['3.9.x', '3.10.x', '3.11.x']
+        django-version: ['3.1.4', '4.0.10', '4.1.9']
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -51,7 +51,7 @@ jobs:
     - name: Install Python
       uses: actions/setup-python@v1
       with:
-        python-version: '3.8.x'
+        python-version: '3.9.x'
 
     - name: Publish release
       run: |
