@@ -470,6 +470,10 @@ class TagNode(LineNode):
         closing_tag = self.compiler.self_closing_tags.get(self.tag_name)
 
         if closing_tag:
+            if self.tag_name == "block" and self.compiler.options.endblock_names:
+                block_name = self.tag_statement.split(" ")[1]
+                closing_tag += " " + block_name
+
             self.before += self.render_newlines()
             self.after = "%s{%% %s %%}%s" % (self.indent, closing_tag, self.render_newlines())
         else:
