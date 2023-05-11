@@ -1,3 +1,9 @@
+v1.6.0 (2023-05-11)
+-------------------------
+ * Add support for named end blocks
+ * Fix using double quotes as attribute wrapper
+ * Update required python version to 3.9
+
 v1.5.0 (2023-03-03)
 -------------------------
  * Update .gitignore
