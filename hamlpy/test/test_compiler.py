@@ -145,6 +145,17 @@ test""",
             "{% with context %}\n  hello\n{% endwith %}\n{% with other_context %}\n  goodbye\n{% endwith %}",
         )
 
+        # block
+        self._test(
+            "-block title\n   %p hello\n",
+            "{% block title %}\n   <p>hello</p>\n{% endblock %}",
+        )
+        self._test(
+            "-block title\n   %p hello\n",
+            "{% block title %}\n   <p>hello</p>\n{% endblock title %}",
+            options={"endblock_names": True},
+        )
+
         # trans
         self._test('- trans "Hello"\n', '{% trans "Hello" %}')
 
