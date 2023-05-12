@@ -1,3 +1,7 @@
+v1.7.0 (2023-05-12)
+-------------------------
+ * Add smart_quotes option to replace conflicting quotes in attribute values with ' or "
+
 v1.6.0 (2023-05-11)
 -------------------------
  * Add support for named end blocks
