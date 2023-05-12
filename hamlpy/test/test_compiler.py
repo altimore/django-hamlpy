@@ -337,6 +337,29 @@ test""",
             options={"attr_wrapper": '"', "format": "xhtml", "escape_attrs": True},
         )
 
+        # smart quotes...
+
+        self._test(
+            """%a(onclick="alert('hi')")""",
+            """<a onclick="alert('hi')"></a>""",
+            options={"attr_wrapper": '"', "smart_quotes": False},
+        )
+        self._test(
+            """%a(onclick="alert('hi')")""",
+            """<a onclick="alert('hi')"></a>""",
+            options={"attr_wrapper": '"', "smart_quotes": True},
+        )
+        self._test(
+            """%a(onclick="alert('hi')")""",
+            """<a onclick='alert("hi")'></a>""",
+            options={"attr_wrapper": "'", "smart_quotes": True},
+        )
+        self._test(
+            """%a(onclick='alert("hi {% trans "world" %}")')""",
+            """<a onclick="alert('hi {% trans "world" %}')"></a>""",
+            options={"attr_wrapper": '"', "smart_quotes": True},
+        )
+
     def test_attr_escaping(self):
         self._test(
             """#foo{:class => '<?php echo "&quot;" ?>'}""",

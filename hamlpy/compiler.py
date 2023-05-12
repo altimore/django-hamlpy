@@ -25,6 +25,7 @@ class Options(object):
         self.tag_config = "django"  # Django vs Jinja2 tags
         self.custom_self_closing_tags = {}  # additional self-closing tags
         self.endblock_names = False  # include block name on endblock closing tags
+        self.smart_quotes = False
         self.debug_tree = False
 
         for k, v in kwargs.items():

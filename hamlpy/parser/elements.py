@@ -180,7 +180,7 @@ class Element(object):
                 else:
                     rendered.append(name)
             else:
-                value = self._escape_attribute_quotes(value, options.attr_wrapper)
+                value = self._escape_attribute_quotes(value, options.attr_wrapper, options.smart_quotes)
                 rendered.append("%s=%s" % (name, attr_wrap(value)))
 
         if len(self.classes) > 0:
@@ -192,7 +192,7 @@ class Element(object):
         return " ".join(rendered)
 
     @classmethod
-    def _escape_attribute_quotes(cls, v, attr_wrapper):
+    def _escape_attribute_quotes(cls, v, attr_wrapper, smart_quotes=False):
         """
         Escapes quotes, except those inside a Django tag
         """
@@ -205,7 +205,12 @@ class Element(object):
                 inside_tag = False
 
             if v[i] == attr_wrapper and not inside_tag:
-                escaped.append(cls.ESCAPED[attr_wrapper])
+                if smart_quotes and attr_wrapper in ('"', "'"):
+                    repl = '"' if v[i] == "'" else "'"
+                else:
+                    repl = cls.ESCAPED[attr_wrapper]
+
+                escaped.append(repl)
             else:
                 escaped.append(v[i])
 
