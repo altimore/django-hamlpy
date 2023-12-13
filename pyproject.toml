@@ -18,11 +18,11 @@ packages = [
 ]
 
 [tool.poetry.urls]
-repository = "http://github.com/nyaruka/django-hamlpy"
+repository = "https://github.com/aagje-info/django-hamlpy"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-django = ">=3.2,<5.0"
+python = "^3.10"
+django = ">=4.2"
 regex = ">=2020.1.1"
 
 [tool.poetry.dev-dependencies]
