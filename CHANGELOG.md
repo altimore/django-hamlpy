@@ -1,3 +1,7 @@
+v1.8.0 (2023-12-13)
+-------------------------
+ * Add Django 5.0 compatibility
+
 v1.7.0 (2023-05-12)
 -------------------------
  * Add smart_quotes option to replace conflicting quotes in attribute values with ' or "
