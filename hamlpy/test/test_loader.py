@@ -65,4 +65,5 @@ class LoaderTest(SimpleTestCase):
             render_to_string("simple.xyz")
 
     def _load_test_template(self, name):
-        return open("hamlpy/test/templates/" + name, "r").read()
+        with open("hamlpy/test/templates/" + name, "r") as template_file:
+            return template_file.read()

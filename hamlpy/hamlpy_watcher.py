@@ -6,7 +6,6 @@ since the last check.
 """
 
 import argparse
-import codecs
 import os
 import os.path
 import sys
@@ -208,11 +207,12 @@ def compile_file(fullpath, outfile_name, compiler_args):
     try:
         if Options.DEBUG:  # pragma: no cover
             print("Compiling %s -> %s" % (fullpath, outfile_name))
-        haml = codecs.open(fullpath, "r", encoding="utf-8").read()
+        with open(fullpath, encoding="utf-8") as haml_file:
+            haml = haml_file.read()
         compiler = Compiler(compiler_args)
         output = compiler.process(haml)
-        outfile = codecs.open(outfile_name, "w", encoding="utf-8")
-        outfile.write(output)
+        with open(outfile_name, "w", encoding="utf-8") as outfile:
+            outfile.write(output)
 
         return True
     except Exception as e:

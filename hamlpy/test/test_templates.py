@@ -1,4 +1,3 @@
-import codecs
 import os
 import time
 import unittest
@@ -32,8 +31,10 @@ class TemplateCheck(object):
             if haml_path.endswith(TEMPLATE_EXTENSION):
                 html_path = path.splitext(haml_path)[0] + ".html"
 
-                haml = codecs.open(haml_path, encoding="utf-8").read()
-                html = open(html_path, "r").read()
+                with open(haml_path, encoding="utf-8") as haml_file:
+                    haml = haml_file.read()
+                with open(html_path, encoding="utf-8") as html_file:
+                    html = html_file.read()
 
                 tests.append(TemplateCheck(haml_path, haml, html))
 
