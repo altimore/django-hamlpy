@@ -1,6 +1,10 @@
-# Introduction
-
 [![Build Status](https://github.com/aagje-info/django-hamlpy/workflows/CI/badge.svg)](https://github.com/aagje-info/django-hamlpy/actions?query=workflow%3ACI)
+
+# django-hamlpy
+
+This project is not in active development. It is forked from [nyaruka/django-hamlpy](https://github.com/nyaruka/django-hamlpy/), after it has been archived on Aug 17, 2023. This fork is only maintained to remain compatible with Django 4.2 and later. Any changes made to this fork are not published to PyPI. Feel free to install this fork directly from GitHub. 
+
+## Introduction
 
 Why type:
 
@@ -29,13 +33,9 @@ is now *django-hamlpy*.
 
 ## Installing
 
-The latest stable version can be installed using [pip](http://pypi.python.org/pypi/pip/):
+The latest development version can be installed directly from GitHub:
 
-    pip install django-hamlpy
-
-And the latest development version can be installed directly from GitHub:
-
-    pip install git+https://github.com/nyaruka/django-hamlpy
+    pip install git+https://github.com/aagje-info/django-hamlpy
 
 **NOTE:** If you run into build errors, then you may need to install [python's development package](http://stackoverflow.com/a/21530768/2896976).
 
