@@ -65,5 +65,5 @@ omit = ["*/migrations/*", "*/tests*", "*__init__*", "*settings*"]
 
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=1.0.0,<2.0.0"]
 build-backend = "poetry.core.masonry.api"
