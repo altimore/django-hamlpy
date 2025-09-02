@@ -105,19 +105,39 @@ def read_quoted_string(stream):
     start = stream.ptr
     stream.ptr += 1  # consume opening quote
 
+    django_brace_depth = 0
+    
     while True:
         if stream.ptr >= stream.length:
             raise ParseException("Unterminated string (expected %s)." % terminator, stream)
-
-        if stream.text[stream.ptr] == terminator and stream.text[stream.ptr - 1] != "\\":
+        
+        ch = stream.text[stream.ptr]
+        
+        # Handle Django template braces {{ }}
+        if ch == '{' and stream.ptr + 1 < stream.length and stream.text[stream.ptr + 1] == '{':
+            django_brace_depth += 1
+            stream.ptr += 2  # consume {{
+            continue
+        elif ch == '}' and stream.ptr + 1 < stream.length and stream.text[stream.ptr + 1] == '}' and django_brace_depth > 0:
+            django_brace_depth -= 1
+            stream.ptr += 2  # consume }}
+            continue
+            
+        # Only stop at terminator if we're not inside Django braces
+        if ch == terminator and django_brace_depth == 0 and (stream.ptr == start + 1 or stream.text[stream.ptr - 1] != "\\"):
             break
-
+            
         stream.ptr += 1
 
     stream.ptr += 1  # consume closing quote
-
-    # evaluate as a Python string (evaluates escape sequences)
-    return ast.literal_eval(stream.text[start : stream.ptr])
+    
+    # Don't evaluate Django templates with ast.literal_eval, just return the raw string
+    raw_string = stream.text[start + 1 : stream.ptr - 1]  # without quotes
+    if '{{' in raw_string and '}}' in raw_string:
+        return raw_string  # Return Django template as-is
+    else:
+        # evaluate as a Python string (evaluates escape sequences)
+        return ast.literal_eval(stream.text[start : stream.ptr])
 
 
 def read_line(stream):
@@ -204,9 +224,9 @@ def read_django_expression(stream):
         
         # Handle string literals
         if quote_char:
-            stream.ptr += 1
-            if ch == quote_char and (stream.ptr == 1 or stream.text[stream.ptr - 2] != '\\'):
+            if ch == quote_char and (stream.ptr == 0 or stream.text[stream.ptr - 1] != '\\'):
                 quote_char = None
+            stream.ptr += 1
             continue
         elif ch in ('"', "'"):
             quote_char = ch
@@ -268,6 +288,7 @@ def read_django_expression(stream):
                 (paren_depth > 0) or  # Allow anything inside parentheses
                 (ch in ('=', '!', '<', '>')) or  # Operators
                 (ch in ('|', ':')) or  # Django filters
+                (ch in ('{', '}')) or  # Django template braces
                 (ch in WHITESPACE_CHARS)):  # Whitespace between operators
                 stream.ptr += 1
             else:
