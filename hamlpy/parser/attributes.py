@@ -24,6 +24,47 @@ ATTRIBUTE_KEY_EXTRA_CHARS = {":", "-", "$", "?", "[", "]"}
 ATTRIBUTE_VALUE_KEYWORDS = {"none": None, "true": True, "false": False}
 
 
+def contains_javascript_constructs(text):
+    """
+    Check if text contains JavaScript constructs that shouldn't be parsed as HAML
+    """
+    if not text:
+        return False
+    
+    # Common JavaScript patterns that indicate this is JS code, not HAML
+    js_patterns = [
+        '=>',  # arrow functions
+        '.then(',  # promises
+        '.catch(',  # promise error handling
+        'function(',  # function declarations
+        'const ',  # const declarations  
+        'let ',  # let declarations
+        'var ',  # var declarations
+        '});',  # common JS ending pattern
+        '=> {',  # arrow function with block
+        ') => ',  # arrow function with params
+        '.map(',  # array methods
+        '.filter(',
+        '.forEach(',
+        'console.',  # console methods
+    ]
+    
+    # If any of these patterns are found, treat as JavaScript
+    for pattern in js_patterns:
+        if pattern in text:
+            return True
+    
+    # Also check for lines that look like method chaining
+    lines = text.strip().split('\n')
+    for line in lines:
+        stripped = line.strip()
+        # Lines starting with . are likely method chaining
+        if stripped.startswith('.') and '(' in stripped:
+            return True
+    
+    return False
+
+
 def read_attribute_word(stream):
     """
     Reads a word for attribute values, allowing more characters than read_word
@@ -172,6 +213,13 @@ def read_attribute_value_haml(stream, compiler):
     stream.ptr -= 1  # un-consume final newline which will act as separator between this and next entry
 
     haml = "\n".join(haml_lines)
+    
+    # Check if the content looks like JavaScript code instead of HAML
+    # If it contains arrow functions or other JS constructs, treat as plain text
+    if contains_javascript_constructs(haml):
+        # Return as plain text instead of parsing as HAML
+        return haml.strip()
+    
     html = compiler.process(haml)
 
     # un-format into single line
