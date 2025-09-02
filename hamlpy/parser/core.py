@@ -186,3 +186,97 @@ def read_word(stream, include_chars=()):
         stream.raise_unexpected()
 
     return stream.text[start : stream.ptr]
+
+
+def read_django_expression(stream):
+    """
+    Reads a Django template expression that may contain dots, operators, and method calls
+    Supports patterns like: user.email, sort_by == "turnover", customer.get_absolute_url()
+    """
+    stream.expect_input()
+    
+    start = stream.ptr
+    paren_depth = 0
+    quote_char = None
+    
+    while stream.ptr < stream.length:
+        ch = stream.text[stream.ptr]
+        
+        # Handle string literals
+        if quote_char:
+            stream.ptr += 1
+            if ch == quote_char and (stream.ptr == 1 or stream.text[stream.ptr - 2] != '\\'):
+                quote_char = None
+            continue
+        elif ch in ('"', "'"):
+            quote_char = ch
+            stream.ptr += 1
+            continue
+        
+        # Handle parentheses depth
+        if ch == '(':
+            paren_depth += 1
+            stream.ptr += 1
+            continue
+        elif ch == ')':
+            paren_depth -= 1
+            # If paren_depth goes negative, we've hit a closing paren that doesn't belong to us
+            if paren_depth < 0:
+                break
+            stream.ptr += 1
+            continue
+        
+        # Stop at comma or closing brace only if we're not inside nested parentheses or quotes
+        if paren_depth == 0 and quote_char is None and ch in (',', '}'):
+            break
+            
+        # Stop at whitespace only if we're not inside parentheses or quotes and not part of operators
+        if paren_depth == 0 and quote_char is None and ch in WHITESPACE_CHARS:
+            # Look ahead to see if this whitespace is part of an operator or leads to a quoted string
+            next_non_space_idx = stream.ptr + 1
+            while (next_non_space_idx < stream.length and 
+                   stream.text[next_non_space_idx] in WHITESPACE_CHARS):
+                next_non_space_idx += 1
+            
+            # If next non-space character is part of an operator, quote, or number, continue
+            if next_non_space_idx < stream.length:
+                next_char = stream.text[next_non_space_idx]
+                if (next_non_space_idx < stream.length - 1 and 
+                    stream.text[next_non_space_idx:next_non_space_idx + 2] in ('==', '!=', '<=', '>=')):
+                    stream.ptr += 1
+                    continue
+                elif next_char in ('<', '>', '"', "'") or next_char.isdigit():
+                    stream.ptr += 1
+                    continue
+                # Check for keywords like "or", "and", "not" or variable names after operators
+                elif next_char.isalpha() or next_char == '_':
+                    # After an operator, we should continue reading variable names
+                    word_end = next_non_space_idx
+                    while (word_end < stream.length and 
+                           (stream.text[word_end].isalnum() or stream.text[word_end] in ('_', '.'))):
+                        word_end += 1
+                    keyword = stream.text[next_non_space_idx:word_end]
+                    # Always continue if we find a valid identifier
+                    stream.ptr += 1
+                    continue
+            # Otherwise break at whitespace
+            break
+        
+        # Allow Django template characters when not in quotes
+        if quote_char is None:
+            if (ch.isalnum() or ch == '_' or ch == '.' or 
+                (paren_depth > 0) or  # Allow anything inside parentheses
+                (ch in ('=', '!', '<', '>')) or  # Operators
+                (ch in WHITESPACE_CHARS)):  # Whitespace between operators
+                stream.ptr += 1
+            else:
+                break
+        else:
+            # Inside quotes, allow everything including the closing quote
+            stream.ptr += 1
+    
+    # if we immediately hit a non-word character, raise it as unexpected
+    if start == stream.ptr:
+        stream.raise_unexpected()
+    
+    return stream.text[start : stream.ptr].strip()

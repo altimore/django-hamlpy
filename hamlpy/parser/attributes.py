@@ -13,6 +13,7 @@ from .core import (
     read_symbol,
     read_whitespace,
     read_word,
+    read_django_expression,
 )
 from .utils import html_escape
 
@@ -126,7 +127,7 @@ def read_attribute_word(stream):
     return stream.text[start : stream.ptr]
 
 
-def read_attribute_value(stream, compiler, allow_arrow_functions=True):
+def read_attribute_value(stream, compiler, allow_arrow_functions=True, allow_django_expressions=False):
     """
     Reads an attribute's value which may be a string, a number or None
     """
@@ -142,7 +143,9 @@ def read_attribute_value(stream, compiler, allow_arrow_functions=True):
     elif ch.isdigit():
         value = read_number(stream)
     else:
-        if allow_arrow_functions:
+        if allow_django_expressions:
+            raw_value = read_django_expression(stream)
+        elif allow_arrow_functions:
             raw_value = read_attribute_word(stream)
         else:
             raw_value = read_word(stream)
@@ -155,7 +158,7 @@ def read_attribute_value(stream, compiler, allow_arrow_functions=True):
     return value
 
 
-def read_attribute_value_list(stream, compiler, allow_arrow_functions=True):
+def read_attribute_value_list(stream, compiler, allow_arrow_functions=True, allow_django_expressions=False):
     """
     Reads an attribute value which is a list of other values
     """
@@ -176,7 +179,7 @@ def read_attribute_value_list(stream, compiler, allow_arrow_functions=True):
         if stream.text[stream.ptr] == close_literal:
             break
 
-        data.append(read_attribute_value(stream, compiler, allow_arrow_functions))
+        data.append(read_attribute_value(stream, compiler, allow_arrow_functions, allow_django_expressions))
 
         read_whitespace(stream)
 
@@ -297,9 +300,9 @@ def read_html_attribute(stream, compiler):
 
             value = read_attribute_value_haml(stream, compiler)
         elif stream.text[stream.ptr] == "[":
-            value = read_attribute_value_list(stream, compiler, allow_arrow_functions=False)
+            value = read_attribute_value_list(stream, compiler, allow_arrow_functions=False, allow_django_expressions=True)
         else:
-            value = read_attribute_value(stream, compiler, allow_arrow_functions=False)
+            value = read_attribute_value(stream, compiler, allow_arrow_functions=False, allow_django_expressions=True)
     else:
         value = True
 
