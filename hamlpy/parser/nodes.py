@@ -63,6 +63,16 @@ def read_node(stream, prev, compiler):
             "#{",
             "%}",
         ):
+            # Check for %script and %style tags before processing as regular elements
+            if stream.text[stream.ptr] == "%" and stream.ptr + 1 < stream.length:
+                # Look for %script or %style at start of line
+                if (stream.text[stream.ptr:stream.ptr+7] == "%script" and 
+                    (stream.ptr + 7 >= stream.length or stream.text[stream.ptr + 7] in (" ", "\t", "\n", "("))):
+                    return read_script_or_style_element_node(stream, indent, compiler, "script")
+                elif (stream.text[stream.ptr:stream.ptr+6] == "%style" and 
+                      (stream.ptr + 6 >= stream.length or stream.text[stream.ptr + 6] in (" ", "\t", "\n", "("))):
+                    return read_script_or_style_element_node(stream, indent, compiler, "style")
+            
             element = read_element(stream, compiler)
             return ElementNode(element, indent, compiler)
 
@@ -142,6 +152,35 @@ def read_script_or_style_node(stream, indent, compiler, tag_type):
     # Create a filter node with the appropriate filter name for script/style
     filter_name = "javascript" if tag_type == "script" else "css"
     return FilterNode(filter_name, "\n".join(content_lines), indent, compiler)
+
+
+def read_script_or_style_element_node(stream, indent, compiler, tag_type):
+    """
+    Reads a %script or %style element node and treats its content as raw text
+    """
+    # Parse the element normally to get attributes
+    element = read_element(stream, compiler)
+    
+    # Read the indented content as raw text
+    content_lines = []
+
+    # read lines below with higher indentation as this tag's content
+    while stream.ptr < stream.length:
+        line_indentation = peek_indentation(stream)
+
+        if line_indentation is not None and line_indentation <= len(indent):
+            break
+
+        line = read_line(stream)
+
+        # don't preserve whitespace on empty lines
+        if line.isspace():
+            line = ""
+
+        content_lines.append(line)
+
+    # Create a special script/style element node that renders with raw content
+    return ScriptStyleElementNode(element, "\n".join(content_lines), indent, compiler)
 
 
 def read_filter_node(stream, indent, compiler):
@@ -295,6 +334,46 @@ class PlaintextNode(LineNode):
             self.after = self.render_newlines()
 
         self._render_children()
+
+
+class ScriptStyleElementNode(Node):
+    """
+    A special node for %script and %style elements that preserves raw content
+    """
+
+    def __init__(self, element, content, indent, compiler):
+        super(ScriptStyleElementNode, self).__init__(indent, compiler)
+        self.element = element
+        self.content = content
+
+    def _render(self):
+        # Render the opening tag with attributes
+        start = ["%s<%s" % (self.indent, self.element.tag)]
+        
+        attributes = self.element.render_attributes(self.compiler.options)
+        if attributes:
+            start.append(" " + attributes)
+        
+        start.append(">")
+        
+        # Add the raw content with proper indentation
+        if self.content.strip():
+            content_lines = self.content.split('\n')
+            indented_content = []
+            for line in content_lines:
+                if line.strip():  # Don't indent empty lines
+                    indented_content.append(self.indent + "  " + line)
+                else:
+                    indented_content.append("")
+            content_with_indent = '\n' + '\n'.join(indented_content) + '\n' + self.indent
+        else:
+            content_with_indent = ""
+        
+        # Render the closing tag
+        end = "</%s>" % self.element.tag
+        
+        self.before = "".join(start) + content_with_indent
+        self.after = end + self.render_newlines()
 
 
 class ElementNode(Node):

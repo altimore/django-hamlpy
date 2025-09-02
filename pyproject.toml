@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-hamlpy"
-version = "1.8.7"
+version = "1.8.8"
 description = "HAML like syntax for Django templates"
 authors = ["Nyaruka <code@nyaruka.com>"]
 readme = "README.md"
