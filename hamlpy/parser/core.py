@@ -267,6 +267,7 @@ def read_django_expression(stream):
             if (ch.isalnum() or ch == '_' or ch == '.' or 
                 (paren_depth > 0) or  # Allow anything inside parentheses
                 (ch in ('=', '!', '<', '>')) or  # Operators
+                (ch in ('|', ':')) or  # Django filters
                 (ch in WHITESPACE_CHARS)):  # Whitespace between operators
                 stream.ptr += 1
             else:
