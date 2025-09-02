@@ -65,12 +65,12 @@ def read_node(stream, prev, compiler):
         ):
             # Check for %script and %style tags before processing as regular elements
             if stream.text[stream.ptr] == "%" and stream.ptr + 1 < stream.length:
-                # Look for %script or %style at start of line
+                # Look for %script or %style at start of line (with HTML-style attributes (), Ruby-style {}, or no attributes)
                 if (stream.text[stream.ptr:stream.ptr+7] == "%script" and 
-                    (stream.ptr + 7 >= stream.length or stream.text[stream.ptr + 7] in (" ", "\t", "\n", "("))):
+                    (stream.ptr + 7 >= stream.length or stream.text[stream.ptr + 7] in (" ", "\t", "\n", "(", "{"))):
                     return read_script_or_style_element_node(stream, indent, compiler, "script")
                 elif (stream.text[stream.ptr:stream.ptr+6] == "%style" and 
-                      (stream.ptr + 6 >= stream.length or stream.text[stream.ptr + 6] in (" ", "\t", "\n", "("))):
+                      (stream.ptr + 6 >= stream.length or stream.text[stream.ptr + 6] in (" ", "\t", "\n", "(", "{"))):
                     return read_script_or_style_element_node(stream, indent, compiler, "style")
             
             element = read_element(stream, compiler)
