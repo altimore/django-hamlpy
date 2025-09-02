@@ -66,6 +66,15 @@ def read_node(stream, prev, compiler):
             element = read_element(stream, compiler)
             return ElementNode(element, indent, compiler)
 
+        # check for special script. and style. tags before reading full line
+        if (stream.text[stream.ptr:stream.ptr+7] == "script." and 
+            (stream.ptr + 7 >= stream.length or stream.text[stream.ptr + 7] in (" ", "\t", "\n"))):
+            return read_script_or_style_node(stream, indent, compiler, "script")
+            
+        if (stream.text[stream.ptr:stream.ptr+6] == "style." and 
+            (stream.ptr + 6 >= stream.length or stream.text[stream.ptr + 6] in (" ", "\t", "\n"))):
+            return read_script_or_style_node(stream, indent, compiler, "style")
+
         # all other nodes are single line
         line = read_line(stream)
 
@@ -96,6 +105,43 @@ def read_node(stream, prev, compiler):
             return TagNode(line, indent, compiler)
 
         return PlaintextNode(line, indent, compiler)
+
+
+def read_script_or_style_node(stream, indent, compiler, tag_type):
+    """
+    Reads a script. or style. node including its indented content as raw text
+    """
+    # Consume the tag name and dot
+    if tag_type == "script":
+        assert stream.text[stream.ptr:stream.ptr+7] == "script."
+        stream.ptr += 7
+    else:  # style
+        assert stream.text[stream.ptr:stream.ptr+6] == "style."
+        stream.ptr += 6
+        
+    # Skip to end of line
+    read_line(stream)
+    
+    content_lines = []
+
+    # read lines below with higher indentation as this tag's content
+    while stream.ptr < stream.length:
+        line_indentation = peek_indentation(stream)
+
+        if line_indentation is not None and line_indentation <= len(indent):
+            break
+
+        line = read_line(stream)
+
+        # don't preserve whitespace on empty lines
+        if line.isspace():
+            line = ""
+
+        content_lines.append(line)
+
+    # Create a filter node with the appropriate filter name for script/style
+    filter_name = "javascript" if tag_type == "script" else "css"
+    return FilterNode(filter_name, "\n".join(content_lines), indent, compiler)
 
 
 def read_filter_node(stream, indent, compiler):
