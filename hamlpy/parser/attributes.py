@@ -24,7 +24,68 @@ ATTRIBUTE_KEY_EXTRA_CHARS = {":", "-", "$", "?", "[", "]"}
 ATTRIBUTE_VALUE_KEYWORDS = {"none": None, "true": True, "false": False}
 
 
-def read_attribute_value(stream, compiler):
+def read_attribute_word(stream):
+    """
+    Reads a word for attribute values, allowing more characters than read_word
+    Allows arrow functions and other JavaScript constructs in attribute values
+    """
+    stream.expect_input()
+    
+    start = stream.ptr
+    paren_depth = 0
+    has_arrow_func = False
+    
+    # First pass: check if this looks like it contains an arrow function
+    temp_ptr = stream.ptr
+    temp_paren_depth = 0
+    while temp_ptr < stream.length:
+        ch = stream.text[temp_ptr]
+        if ch == '(':
+            temp_paren_depth += 1
+        elif ch == ')':
+            temp_paren_depth -= 1
+            
+        if stream.text[temp_ptr:temp_ptr+2] == '=>':
+            has_arrow_func = True
+            break
+        if temp_paren_depth == 0 and ch in (',', '}'):
+            break
+        elif temp_paren_depth < 0 and ch == ')':
+            break
+        temp_ptr += 1
+    
+    while stream.ptr < stream.length:
+        ch = stream.text[stream.ptr]
+        
+        # Handle parentheses depth
+        if ch == '(':
+            paren_depth += 1
+        elif ch == ')':
+            paren_depth -= 1
+        
+        # Stop at comma or closing brace only if we're not inside nested parentheses
+        # Don't stop at ')' if it's part of the expression (paren_depth > 0)
+        if paren_depth == 0 and ch in (',', '}'):
+            break
+        elif paren_depth < 0 and ch == ')':
+            # If paren_depth goes negative, we've hit a closing paren that doesn't belong to us
+            break
+        
+        # If this contains arrow function, don't stop at whitespace
+        # Otherwise, stop at whitespace as before
+        if not has_arrow_func and paren_depth == 0 and ch in WHITESPACE_CHARS:
+            break
+            
+        stream.ptr += 1
+    
+    # if we immediately hit a non-word character, raise it as unexpected
+    if start == stream.ptr:
+        stream.raise_unexpected()
+    
+    return stream.text[start : stream.ptr]
+
+
+def read_attribute_value(stream, compiler, allow_arrow_functions=True):
     """
     Reads an attribute's value which may be a string, a number or None
     """
@@ -40,7 +101,10 @@ def read_attribute_value(stream, compiler):
     elif ch.isdigit():
         value = read_number(stream)
     else:
-        raw_value = read_word(stream)
+        if allow_arrow_functions:
+            raw_value = read_attribute_word(stream)
+        else:
+            raw_value = read_word(stream)
 
         if raw_value.lower() in ATTRIBUTE_VALUE_KEYWORDS:
             value = ATTRIBUTE_VALUE_KEYWORDS[raw_value.lower()]
@@ -50,7 +114,7 @@ def read_attribute_value(stream, compiler):
     return value
 
 
-def read_attribute_value_list(stream, compiler):
+def read_attribute_value_list(stream, compiler, allow_arrow_functions=True):
     """
     Reads an attribute value which is a list of other values
     """
@@ -71,7 +135,7 @@ def read_attribute_value_list(stream, compiler):
         if stream.text[stream.ptr] == close_literal:
             break
 
-        data.append(read_attribute_value(stream, compiler))
+        data.append(read_attribute_value(stream, compiler, allow_arrow_functions))
 
         read_whitespace(stream)
 
@@ -151,9 +215,9 @@ def read_ruby_attribute(stream, compiler):
 
             value = read_attribute_value_haml(stream, compiler)
         elif stream.text[stream.ptr] in ("(", "["):
-            value = read_attribute_value_list(stream, compiler)
+            value = read_attribute_value_list(stream, compiler, allow_arrow_functions=True)
         else:
-            value = read_attribute_value(stream, compiler)
+            value = read_attribute_value(stream, compiler, allow_arrow_functions=True)
     else:
         value = True
 
@@ -185,9 +249,9 @@ def read_html_attribute(stream, compiler):
 
             value = read_attribute_value_haml(stream, compiler)
         elif stream.text[stream.ptr] == "[":
-            value = read_attribute_value_list(stream, compiler)
+            value = read_attribute_value_list(stream, compiler, allow_arrow_functions=False)
         else:
-            value = read_attribute_value(stream, compiler)
+            value = read_attribute_value(stream, compiler, allow_arrow_functions=False)
     else:
         value = True
 
