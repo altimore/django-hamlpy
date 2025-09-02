@@ -1,3 +1,19 @@
+v1.9.1 (2025-01-02)
+-------------------------
+ * Improve Django template parsing in quoted strings and expressions
+ * Fix handling of Django template braces {{ }} inside quoted attribute values
+ * Fix parsing of nested quotes in Django filter arguments (e.g., default_if_none:"")
+ * Improve string literal handling in read_django_expression()
+ * Add support for Django template braces { } in expressions
+ * Return Django templates as raw strings instead of evaluating with ast.literal_eval
+
+v1.9.0 (2025-01-02)
+-------------------------
+ * Fix Django filter parsing in HTML-style attributes
+ * Add support for pipe (|) and colon (:) characters in Django expressions
+ * Enable proper parsing of Django filters like `company.id|stringformat:"s"` in HAML templates
+ * Update read_django_expression() to allow Django filter syntax
+
 v1.8.0 (2023-12-13)
 -------------------------
  * Add Django 5.0 compatibility

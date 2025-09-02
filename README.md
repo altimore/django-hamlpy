@@ -245,6 +245,32 @@ class MyNewView(HamlExtensionTemplateView, ParentViewType):
 
 **Note**: `HamlExtensionTemplateView` *needs* to be first in the inheritance list.
 
+## Django Integration Features
+
+### Internationalization Support
+
+Django-hamlpy fully supports Django's internationalization framework. You can use Django's `makemessages` command to extract translatable strings directly from HAML templates:
+
+```bash
+python manage.py makemessages -l fr -e haml,py
+```
+
+This will extract all `{% trans %}` tags and translatable strings from your `.haml` files, just like it does for regular HTML templates.
+
+### Advanced Django Template Parsing
+
+The parser has been enhanced to handle complex Django template expressions within HAML attribute values, including:
+
+- Django filters with arguments: `value=field.value|default_if_none:""`
+- Complex expressions in HTML-style attributes: `value="{{ field.value|default_if_none:"" }}"`
+- Nested quotes within Django template expressions
+- Template variables with pipes and colons: `company.id|stringformat:"s"`
+
+Example:
+```haml
+%input.form-control(type="{{ field.field.widget.input_type }}" name="{{ field.name }}" value="{{ field.value|default_if_none:"" }}")
+```
+
 ## Contributing
 
 We're always happy to have contributions to this project. To get started you'll need to clone the project and install 
